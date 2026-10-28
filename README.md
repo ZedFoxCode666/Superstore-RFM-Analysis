@@ -1,6 +1,6 @@
-📊 Superstore Sales Performance & Customer RFM Segmentation Analysis
-> \*\*Live Interactive Dashboard\*\*: https://zedfoxcode666.github.io/Superstore-RFM-Analysis/
-> 📥 **Download PBIX File**: [Klik di sini untuk mengunduh file Power BI](./Superstore_Sales_RFM_Analytics.pbix)
+# 📊 Superstore Sales Performance & Customer RFM Segmentation Analysis
+
+> **Live Interactive Dashboard**: Silakan ganti dengan link GitHub Pages Anda
 
 ---
 
@@ -48,9 +48,13 @@ Model data dirancang dengan skema bintang relasional *1-to-Many* (`1:*`) searah 
 | Quantity                                                                            |
 +-------------------------------------------------------------------------------------+
 ```
+
 ---
-📐 Rekayasa DAX & Metrik Kunci
-1. Ukuran Finansial Dasar (Core Measures)
+
+## 📐 Rekayasa DAX & Metrik Kunci
+
+### 1. Ukuran Finansial Dasar (Core Measures)
+
 ```dax
 -- Total Omset
 Total Sales = SUM(fact_orders[Sales])
@@ -64,7 +68,9 @@ Profit Margin Pct = DIVIDE([Total Profit], [Total Sales], 0)
 -- Basis Pelanggan Unik
 Total Customers = DISTINCTCOUNT(dim_customers[Customer ID])
 ```
-2. Time Intelligence (Analisis Pertumbuhan Tahunan)
+
+### 2. Time Intelligence (Analisis Pertumbuhan Tahunan)
+
 ```dax
 -- Penjualan Periode Tahun Lalu (SPLY)
 Sales Last Year = 
@@ -80,43 +86,52 @@ VAR PriorSales = [Sales Last Year]
 RETURN
 DIVIDE(CurrentSales - PriorSales, PriorSales, 0)
 ```
+
 ---
-🎯 Metodologi Segmentasi RFM (Recency, Frequency, Monetary)
-Segmentasi diimplementasikan pada tabel `dim\_customers` menggunakan 3 pilar:
-A. Pilar Perhitungan Mentah
-Recency Days: Menghitung jarak hari antara order terakhir pelanggan dengan tanggal referensi akhir dataset.
-```dax
- Recency days = 
-VAR MaxDatasetDate = MAXX(ALL(fact_orders), fact_orders[Order Date])
-VAR LastCustomerOrder = MAXX(RELATEDTABLE(fact_orders), fact_orders[Order Date])
-RETURN
-DATEDIFF(LastCustomerOrder, MaxDatasetDate, DAY)
+
+## 🎯 Metodologi Segmentasi RFM (Recency, Frequency, Monetary)
+
+Segmentasi diimplementasikan pada tabel `dim_customers` menggunakan 3 pilar:
+
+### A. Pilar Perhitungan Mentah
+
+* **Recency Days**: Menghitung jarak hari antara order terakhir pelanggan dengan tanggal referensi akhir dataset.
+  ```dax
+  Recency days = 
+  VAR MaxDatasetDate = MAXX(ALL(fact_orders), fact_orders[Order Date])
+  VAR LastCustomerOrder = MAXX(RELATEDTABLE(fact_orders), fact_orders[Order Date])
+  RETURN
+  DATEDIFF(LastCustomerOrder, MaxDatasetDate, DAY)
   ```
-Frequency Orders: Menghitung jumlah transaksi unik (`Order ID`).
-```dax
-Frequency Orders = 
-COUNTROWS(
-    DISTINCT(
-        SELECTCOLUMNS(
-            RELATEDTABLE(fact_orders),
-            "OrderID", fact_orders[Order ID]
-        )
-    )
-)
+* **Frequency Orders**: Menghitung jumlah transaksi unik (`Order ID`).
+  ```dax
+  Frequency Orders = 
+  COUNTROWS(
+      DISTINCT(
+          SELECTCOLUMNS(
+              RELATEDTABLE(fact_orders),
+              "OrderID", fact_orders[Order ID]
+          )
+      )
+  )
   ```
-Monetary Sales: Akumulasi total nominal belanjaan pelanggan.
-```dax
+* **Monetary Sales**: Akumulasi total nominal belanjaan pelanggan.
+  ```dax
   Monetary Sales = 
-SUMX(
-    RELATEDTABLE(fact_orders),
-    fact_orders[Sales]
-)
+  SUMX(
+      RELATEDTABLE(fact_orders),
+      fact_orders[Sales]
+  )
   ```
-B. Matriks Penilaian Skor (Skala 1 - 5)
-R Score: <= 30 hari -> 5; <= 90 -> 4; <= 180 -> 3; <= 365 -> 2; > 365 -> 1.
-F Score: >= 9 orders -> 5; >= 7 -> 4; >= 5 -> 3; >= 3 -> 2; <= 2 -> 1.
-M Score: >= $4,000 -> 5; >= $2,500 -> 4; >= $1,500 -> 3; >= $750 -> 2; < $750 -> 1.
-C. Logika Klasifikasi Segmen Pelanggan
+
+### B. Matriks Penilaian Skor (Skala 1 - 5)
+
+* **R Score**: <= 30 hari -> 5; <= 90 -> 4; <= 180 -> 3; <= 365 -> 2; > 365 -> 1.
+* **F Score**: >= 9 orders -> 5; >= 7 -> 4; >= 5 -> 3; >= 3 -> 2; <= 2 -> 1.
+* **M Score**: >= $4,000 -> 5; >= $2,500 -> 4; >= $1,500 -> 3; >= $750 -> 2; < $750 -> 1.
+
+### C. Logika Klasifikasi Segmen Pelanggan
+
 ```dax
 Customer Segment = 
 SWITCH(
@@ -144,4 +159,13 @@ SWITCH(
     "Needs Attention"
 )
 ```
+
 ---
+
+## 📈 Temuan Kunci & Rekomendasi Bisnis
+
+| Pilar Analisis | Temuan Kuantitatif | Rekomendasi Aksi (Action Plan) |
+| :--- | :--- | :--- |
+| **Mitigasi Churn (*At Risk*)** | Puluhan pelanggan di segmen *At Risk* menyumbang belanja rata-rata di atas $2,500/orang namun memiliki Recency > 180 hari. | Terapkan automated email marketing berbasis *win-back offer* dengan diskon kategori produk yang pernah dibeli sebelumnya. |
+| **Proteksi Segmen *Champions*** | Kontributor terbesar terhadap total omset dan laba bersih perusahaan. | Berikan program loyalitas VIP dan prioritas layanan pengiriman tanpa memangkas margin lewat diskon berlebih. |
+| **Pengendalian Defisit Produk** | Sub-kategori *Tables* mengalami defisit -$17.7K akibat diskon agresif. | Batasi diskon maksimal di batas 15% untuk kategori meja kantor dan tinjau ulang biaya pengiriman regional. |
