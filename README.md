@@ -1,5 +1,6 @@
 📊 Superstore Sales Performance & Customer RFM Segmentation Analysis
 > \*\*Live Interactive Dashboard\*\*: https://zedfoxcode666.github.io/Superstore-RFM-Analysis/
+> 📥 **Download PBIX File**: [Klik di sini untuk mengunduh file Power BI](./Superstore_Sales_RFM_Analytics.pbix)
 
 ---
 
